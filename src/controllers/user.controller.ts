@@ -1,13 +1,13 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 
-export const signup = (req: Request, res: Response): void => {};
+import { BaseController } from './base.controller';
 
-export const login = (req: Request, res: Response): void => {
-  const { email, password }: { email: string, password: string } = req.body;
+export class UserController extends BaseController {
+  signUp = (req: Request, res: Response) => {
+    this.success(res, req.body);
+  };
 
-
-};
-
-export const logout = (req: Request, res: Response): void => {};
-
-export const refreshToken = (req: Request, res: Response): void => {};
+  logout = () => {
+    this.error(new Error());
+  };
+}
