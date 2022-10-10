@@ -1,14 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import 'express-async-errors';
+import { StatusCodes } from 'http-status-codes';
 
 import { UserRoutes } from '@routes/user.routes';
 import { env } from '@utils/environment';
-import { Logger } from '@services/logging';
+import { log } from '@services/log.service';
 import { ApiError } from '@utils/error';
 import { ApiResponse } from '@utils/response';
-
-require('express-async-errors');
 
 export class Application {
   private server: express.Application;
@@ -17,7 +17,7 @@ export class Application {
     this.server = express();
     this.configureServer();
     this.configureRoutes();
-    this.configureErrorHandlers();
+    this.configureErrorHandler();
   }
 
   private configureServer() {
@@ -26,7 +26,7 @@ export class Application {
     this.server.use(
       morgan(':method :url :status :res[content-length] - :response-time ms', {
         stream: {
-          write: message => Logger.http(message.trim()),
+          write: message => log.http(message.trim()),
         },
         skip: () => env.isProduction,
       }),
@@ -37,7 +37,7 @@ export class Application {
     this.server.use(new UserRoutes('/users').configure());
   }
 
-  private configureErrorHandlers() {
+  private configureErrorHandler() {
     this.server.use(
       (
         err: any,
@@ -46,23 +46,25 @@ export class Application {
         _next: express.NextFunction,
       ) => {
         if (err instanceof ApiError) {
-          Logger.error(err.message, err.rawErrors);
+          log.error(err.message, err.rawErrors);
 
           return res
             .status(err.statusCode)
             .json(ApiResponse.Error(err.message, err.rawErrors));
         }
 
-        Logger.error(err.message);
+        log.error(err.message);
 
-        return res.status(500).json(ApiResponse.Error(err.message));
+        res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json(ApiResponse.Error('Internal server error'));
       },
     );
   }
 
   start() {
-    this.server.listen(env.PORT, () => {
-      Logger.info(`Server running on port ${env.PORT}`);
+    return this.server.listen(env.PORT, () => {
+      log.info(`Server running on port ${env.PORT}`);
     });
   }
 }

@@ -5,6 +5,7 @@ export class ApiError extends Error {
     public statusCode: number,
     message: string,
     public rawErrors: string[] = [],
+    public isOperational: boolean = true,
   ) {
     super(message);
     Error.captureStackTrace(this, this.constructor);

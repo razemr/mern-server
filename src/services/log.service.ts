@@ -8,7 +8,7 @@ interface LogFn {
   (msg: string, ...args: any[]): void;
 }
 
-export interface ILogger {
+interface LogService {
   error: LogFn;
   warn: LogFn;
   info: LogFn;
@@ -18,7 +18,7 @@ export interface ILogger {
   silly: LogFn;
 }
 
-export const Logger: ILogger = winston.createLogger({
+export const log: LogService = winston.createLogger({
   level: env.isDevelopment ? 'debug' : 'warn',
   format: winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
